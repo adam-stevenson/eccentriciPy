@@ -1,0 +1,32 @@
+114 planets/  68 unique eccentricities: Are you sure this is enough? 
+-----------------
+EDF method:
+
+Beta: a=1.6516 + 0.0719 - 0.0897, b=9.5308 + 0.3487 - 0.6062
+Evidence is 91.82 ± 0.08
+-----------------
+Kumaraswamy: alpha=1.2865 + 0.0257 - 0.0331, beta=9.5491 + 0.3299 - 0.5816
+Evidence is 88.00 ± 0.08
+-----------------
+RE: alpha=0.2995 + 0.1067 - 0.1011, lambda=4.5384 + 2.1037 - 1.7007, sigma=0.1041 + 0.0111 - 0.0070
+Evidence is 89.18 ± 0.09
+-----------------
+ST08: a=7.6694 + 0.3445 - 0.3412
+Evidence is 87.11 ± 0.06
+-----------------
+Gamma: alpha=1.5366 + 0.0470 - 0.0516, beta=9.7637 + 0.1785 - 0.3521
+Evidence is 87.28 ± 0.08
+-----------------
+
+PDF method:
+n.b only compare evidences within each method, not between each other! 
+
+Beta: a=1.7944 ± 0.1376, b=9.4087 ± 0.5094
+Evidence is 116.19
+-----------------
+RE: alpha=0.1533 ± 0.1026, lambda=5.5562 ± 2.1029, sigma=0.1219 ± 0.0093
+Evidence is 109.84
+-----------------
+Gamma: alpha=2.1937 ± 0.1649, beta=13.9054 ± 0.8794
+Evidence is 118.13
+-----------------
