@@ -1,6 +1,5 @@
 # A. T. Stevenson
-# code to fit to eccentricity distributions.
-
+# code to fit eccentricity distributions.
 
 def main():
 
@@ -25,27 +24,30 @@ def main():
 
     LN2PI = np.log(2.*np.pi)
     open('eccentriciPy_results.txt', 'w').close()
+    #the file that results will be written to.
 
-    #n.b. for mac, pymultinest needs this in ~/.zshrc: export DYLD_LIBRARY_PATH="/Users/a.t.stevenson@bham.ac.uk/adam/Software/eccentriciPy/MultiNest/lib:$DYLD_LIBRARY_PATH"
+    #n.b. for mac, pymultinest needs this in ~/.zshrc: export DYLD_LIBRARY_PATH="/path/to/install/of/MultiNest/lib:$DYLD_LIBRARY_PATH"
 
     #------------------------------------------------------------
     # OPTIONS
     # Define the cuts on the sample of RV planets you want to probe:
 
-    #periods in days (for all, set 0--100000000000000 or something silly)
+    #periods in days (for all, set upper period bound to massive value)
     p_upp = 100
     p_low = 0 
 
-    #can have both as true 
+    #n.b. both can be true.
     multi = True
     single = True
 
-    #masses in Earth-masses.
+    #masses in Earth-masses. For all, set upper bound huge
     m_upp = 10
     m_low = 0
 
     #if have an archive already downloaded (e.g. using the provided one) and cuts have been made
-    path_to_archive = "/Users/a.t.stevenson@bham.ac.uk/adam/Software/eccentriciPy/adapted_sample.csv"
+    path_to_archive = "adapted_sample.csv" #set path.
+
+    #to be implememted: downloading latest archive, and retaining 'usable' ones (e.g. K/sigma_K > 5)
 
 
     #------------------------------------------------------------
@@ -120,7 +122,7 @@ def main():
     def kumara(x, alpha,beta):
         return chaospy.Kumaraswamy(alpha,beta,lower=0,upper=1).cdf(x)
 
-    def RE(x,alpha,l,sig): #normalised - Hugh helped me figure this out!
+    def RE(x,alpha,l,sig): #normalised
         rayleigh_scale = sig
         expon_scale = 1/l
         frac = alpha
@@ -131,6 +133,7 @@ def main():
         cdf = (1-frac) * (rayleigh.cdf(x) / rayleigh.cdf(1)) + (frac) * (expon.cdf(x) / expon.cdf(1))
         return cdf
 
+    #incorrect formula for ST08 equation!
     #def ST08(x,a,k):
     #    cdf=(1/k)*((1/((1-a)) * 1/((1+x)**(a-1)) - (x**2)/(2**(a+1))))
     #    return (cdf - np.min(cdf))/np.max((cdf - np.min(cdf)))
@@ -212,16 +215,14 @@ def main():
 
     # run the algorithm
     solution = BetaModelPyMultiNest(all_y, all_x, beta, all_dkw_err_array, n_dims=ndim, n_live_points=nlive, evidence_tolerance=tol);
-    #solution = BetaModelPyMultiNest(y_n0[x_n0>=0.2], x_n0[x_n0>=0.2], beta, err_n0[x_n0>=0.2], n_dims=ndim, n_live_points=nlive, evidence_tolerance=tol);
-    #solution = BetaModelPyMultiNest(all_y[all_x>=0.2], all_x[all_x>=0.2], beta, all_dkw_err_array[all_x>=0.2], n_dims=ndim, n_live_points=nlive, evidence_tolerance=tol);
 
     logZpymnest = solution.logZ        # value of log Z
     logZerrpymnest = solution.logZerr  # estimate of the statistcal uncertainty on logZ
 
     print('Marginalised evidence is {} ± {}'.format(logZpymnest, logZerrpymnest))
 
-    achain_pymnest = solution.samples[:,0] # extract chain of m values
-    bchain_pymnest = solution.samples[:,1] # extract chain if c values
+    achain_pymnest = solution.samples[:,0] # extract chain of a values
+    bchain_pymnest = solution.samples[:,1] # extract chain if b values
 
     postsamples = np.vstack((achain_pymnest, bchain_pymnest)).T
     a_low, a_med, a_upp = corner.quantile(achain_pymnest,q=[0.16,0.50,0.84])
@@ -302,7 +303,7 @@ def main():
     print('Marginalised evidence is ± {}'.format(logZpymnest, logZerrpymnest))
 
     achain_pymnest = solution.samples[:,0] # extract chain of a values
-    bchain_pymnest = solution.samples[:,1] # extract chain if b values
+    bchain_pymnest = solution.samples[:,1] # extract chain of b values
 
     postsamples = np.vstack((achain_pymnest, bchain_pymnest)).T
 
@@ -356,7 +357,7 @@ def main():
 
             alpha = alphaprime*(self.alphamax-self.alphamin) + self.alphamin  # convert back to alpha
             l = lprime*(self.lmax-self.lmin) + self.lmin # convert to lambda
-            sig = sigprime*(self.sigmax-self.sigmin) + self.sigmin #convert to signa
+            sig = sigprime*(self.sigmax-self.sigmin) + self.sigmin #convert to sigma
 
             return np.array([alpha, l, sig])
 
@@ -391,9 +392,9 @@ def main():
 
     print('Marginalised evidence is ± {}'.format(logZpymnest, logZerrpymnest))
 
-    alphachain_pymnest = solution.samples[:,0] # extract chain of m values
-    lchain_pymnest = solution.samples[:,1] # extract chain if c values
-    sigchain_pymnest = solution.samples[:,2]
+    alphachain_pymnest = solution.samples[:,0] # extract chain of alpha values
+    lchain_pymnest = solution.samples[:,1] # extract chain of lambda values
+    sigchain_pymnest = solution.samples[:,2] # extract chain of sigma values
 
     postsamples = np.vstack((alphachain_pymnest, lchain_pymnest, sigchain_pymnest)).T
 
@@ -418,7 +419,7 @@ def main():
         amin = 0. 
         amax = 100
         #kmin = 0. 
-        #kmax = 100
+        #kmax = 100 #legacy from incorrect formulation of ST08 equation.
         
 
         def __init__(self, data, abscissa, modelfunc, sigma, **kwargs):
@@ -479,7 +480,7 @@ def main():
 
     print('Marginalised evidence is ± {}'.format(logZpymnest, logZerrpymnest))
 
-    achain_pymnest = solution.samples[:,0] # extract chain of m values
+    achain_pymnest = solution.samples[:,0] # extract chain of a values
 
 
     print('Number of posterior samples is {}'.format(postsamples.shape[0]))
@@ -558,8 +559,8 @@ def main():
 
     print('Marginalised evidence is ± {}'.format(logZpymnest, logZerrpymnest))
 
-    achain_pymnest = solution.samples[:,0] # extract chain of m values
-    bchain_pymnest = solution.samples[:,1] # extract chain if c values
+    achain_pymnest = solution.samples[:,0] # extract chain of a values
+    bchain_pymnest = solution.samples[:,1] # extract chain of b values
 
 
     postsamples = np.vstack((achain_pymnest, bchain_pymnest)).T
@@ -574,6 +575,8 @@ def main():
         the_file.write(f'Evidence is {logZpymnest:.2f} ± {logZerrpymnest:.2f}\n')
         the_file.write("-----------------\n")
     
+
+
     # END OF EDF METHOD
     #----------------------------------------------------------------
  
@@ -585,7 +588,8 @@ def main():
 
     #PDF method 
     #------------------------------------------------------------------
-
+    # credit for pymc implementation of the 'PDF' method to J. Faria.
+    # don't bother with kumaraswamy here (practically same as Beta) or the ST08 as it is always disfavoured.
 
 
     models = []
@@ -603,7 +607,6 @@ def main():
 
 
          # run MCMC
-        #had issues for multiprocessing. testing this bit....
         trace_beta = pm.sample(4000, cores=4)
 
     
@@ -618,11 +621,12 @@ def main():
     #ev_std = idatas[-1].sample_stats["log_marginal_likelihood"].std().values.item()
     ev = idatas[-1].sample_stats['log_marginal_likelihood'].values[-1][-1]
 
+    # extracting evidence from the stats proved weird and changing. Hacky version above will hopefully be improved in future...
+
 
     with open('eccentriciPy_results.txt', 'a') as the_file:
         the_file.write(f'Beta: a={output[0][0]:.4f} ± {output[0][1]:.4f}, b={output[1][0]:.4f} ± {output[1][1]:.4f}\n')
         the_file.write(f'Evidence is {ev:.2f}\n')# ± {ev_std:.2f}\n')
-        #the_file.write(f'Evidence is '+str(ev)+'\n')# ± {ev_std:.2f}\n')
         the_file.write("-----------------\n")
   
     #--------------------------------------------------------
@@ -641,7 +645,7 @@ def main():
 
         exp = pm.Exponential.dist(lam=lam)
 
-        ray = pm.Weibull.dist(alpha=2, beta=np.sqrt(2) * sig)
+        ray = pm.Weibull.dist(alpha=2, beta=np.sqrt(2) * sig) #makes the Rayleigh distribution
 
         components = [pm.Truncated.dist(exp, upper=1), pm.Truncated.dist(ray, upper=1)]
 
@@ -665,7 +669,6 @@ def main():
     with open('eccentriciPy_results.txt', 'a') as the_file:
         the_file.write(f'RE: alpha={output[0][0]:.4f} ± {output[0][1]:.4f}, lambda={output[2][0]:.4f} ± {output[2][1]:.4f}, sigma={output[3][0]:.4f} ± {output[3][1]:.4f}\n')
         the_file.write(f'Evidence is {ev:.2f}\n')# ± {ev_std:.2f}\n')
-        #the_file.write(f'Evidence is '+str(ev)+'\n')# ± {ev_std:.2f}\n')
         the_file.write("-----------------\n")
     
     
@@ -699,9 +702,9 @@ def main():
     with open('eccentriciPy_results.txt', 'a') as the_file:
         the_file.write(f'Gamma: alpha={output[0][0]:.4f} ± {output[0][1]:.4f}, beta={output[1][0]:.4f} ± {output[1][1]:.4f}\n')
         the_file.write(f'Evidence is {ev:.2f}\n')# ± {ev_std:.2f}\n')
-        #the_file.write(f'Evidence is '+str(ev)+'\n')# ± {ev_std:.2f}\n')
         the_file.write("-----------------\n")
 
 
 if __name__=='__main__':
     main()
+    #the whole thing needed to be wrapped in this for pymc to work on mac. But seems good practice anyway
