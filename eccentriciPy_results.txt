@@ -1,32 +1,32 @@
-114 planets/  68 unique eccentricities: Are you sure this is enough? 
+181 planets/  94 unique eccentricities: Are you sure this is enough? 
 -----------------
 EDF method:
 
-Beta: a=1.6516 + 0.0719 - 0.0897, b=9.5308 + 0.3487 - 0.6062
-Evidence is 91.82 ± 0.08
+Beta: a=1.6906 + 0.0424 - 0.0569, b=9.7307 + 0.1944 - 0.3702
+Evidence is 141.87 ± 0.08
 -----------------
-Kumaraswamy: alpha=1.2865 + 0.0257 - 0.0331, beta=9.5491 + 0.3299 - 0.5816
-Evidence is 88.00 ± 0.08
+Kumaraswamy: alpha=1.3047 + 0.0152 - 0.0199, beta=9.7631 + 0.1731 - 0.3630
+Evidence is 133.68 ± 0.09
 -----------------
-RE: alpha=0.2995 + 0.1067 - 0.1011, lambda=4.5384 + 2.1037 - 1.7007, sigma=0.1041 + 0.0111 - 0.0070
-Evidence is 89.18 ± 0.09
+RE: alpha=0.2436 + 0.0716 - 0.0619, lambda=2.7556 + 1.0118 - 1.2439, sigma=0.0968 + 0.0035 - 0.0033
+Evidence is 144.06 ± 0.10
 -----------------
-ST08: a=7.6694 + 0.3445 - 0.3412
-Evidence is 87.11 ± 0.06
+ST08: a=7.7588 + 0.2263 - 0.2387
+Evidence is 130.59 ± 0.07
 -----------------
-Gamma: alpha=1.5366 + 0.0470 - 0.0516, beta=9.7637 + 0.1785 - 0.3521
-Evidence is 87.28 ± 0.08
+Gamma: alpha=1.5688 + 0.0300 - 0.0338, beta=9.8768 + 0.0908 - 0.1917
+Evidence is 134.22 ± 0.09
 -----------------
 
 PDF method:
 n.b only compare evidences within each method, not between each other! 
 
-Beta: a=1.7944 ± 0.1376, b=9.4087 ± 0.5094
-Evidence is 116.19
+Beta: a=1.8045 ± 0.1206, b=9.3285 ± 0.5185
+Evidence is 176.37
 -----------------
-RE: alpha=0.1533 ± 0.1026, lambda=5.5562 ± 2.1029, sigma=0.1219 ± 0.0093
-Evidence is 109.84
+RE: alpha=0.2914 ± 0.0914, lambda=4.1461 ± 0.9652, sigma=0.1039 ± 0.0096
+Evidence is 168.61
 -----------------
-Gamma: alpha=2.1937 ± 0.1649, beta=13.9054 ± 0.8794
-Evidence is 118.13
+Gamma: alpha=2.2190 ± 0.1432, beta=13.9098 ± 0.8337
+Evidence is 180.81
 -----------------
