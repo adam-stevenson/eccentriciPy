@@ -21,6 +21,7 @@ def main():
     import pyvo
     import pymc as pm
     import arviz as az
+    from datetime import datetime
 
     LN2PI = np.log(2.*np.pi)
     open('eccentriciPy_results.txt', 'w').close()
@@ -44,15 +45,49 @@ def main():
     m_upp = 10
     m_low = 0
 
-    #if have an archive already downloaded (e.g. using the provided one) and cuts have been made
-    path_to_archive = "adapted_sample.csv" #set path.
-
-    #to be implememted: downloading latest archive, and retaining 'usable' ones (e.g. K/sigma_K > 5)
-
+    dload_archive=True #set True to download latest NASA archive, False to use local one
+    #if dload_archive above is false, specify path of local archive.
+    path_to_archive = "adapted_sample.csv" #set path (e.g. to paper sample, or pre-saved one from given day).
+    #n.b. if using your own archive, ensure the cuts have been made (K/sigma_K > 5, etc).
+    
+    #if dload_archive is True, and you want to save it out locally to then use in future or for records, set to True
+    #(this should probably stay true if continually using most up to date archive, but the option is there to turn if off if running on many different days and folders getting messy)
+    save_archive = True
 
     #------------------------------------------------------------
+    if dload_archive==True:
+        service = pyvo.dal.TAPService("https://exoplanetarchive.ipac.caltech.edu/TAP")
+        #download the NASA archive, picking relevant columns 
+        #uses default solution and makes sure they are Published & Confirmed planets.
+        #circumbinary planets are excluded here too. 
+        query = "SELECT pl_name,hostname,sy_snum,sy_pnum,discoverymethod,pl_orbper,pl_orbpererr1,pl_orbpererr2,pl_bmasse,pl_bmasseerr1,pl_bmasseerr2,pl_orbeccen, pl_orbeccenerr1, pl_orbeccenerr2,pl_rvamp,pl_rvamperr1,pl_rvamperr2,st_mass,st_masserr1,st_masserr2,st_met,st_meterr1,st_meterr2 FROM ps WHERE discoverymethod = 'Radial Velocity' AND default_flag=1 AND cb_flag=0 AND soltype='Published Confirmed'"
+        results = service.search(query)
+        df=results.to_table().to_pandas(index=True)
+        df=df.dropna(subset=['pl_orbper','pl_orbeccen','pl_rvamp','pl_rvamperr1','pl_rvamperr2'])
+        df=df[df.pl_rvamp/((df.pl_rvamperr1+(-df.pl_rvamperr2))/2) > 5] #the err2 is negative. Semi-amp detection to better than 20%
 
-    usable_NASA_exoplanets=pd.read_csv(path_to_archive,sep=",")
+        #add in some non-default (alternative) solutions, as in paper.
+        #duplicate then to rename column to updated ecc
+        df.insert(loc=1, column='updated_ecc', value=df.pl_orbeccen)
+        alt_sol_planets = ['55 Cnc b','CoRoT-7 c','GJ 581 b','GJ 581 c','GJ 581 e','HD 102195 b','HD 109749 b','HD 116029 b','HD 136352 b','HD 136352 c','HD 136352 d','HD 142245 b','HD 149026 b','HD 156668 b','HD 189733 b','HD 20794 b','HD 20794 c','HD 20794 d','HD 209458 b','HD 219134 b','HD 2638 b','HD 285968 b','HD 50499 c','YZ Cet c']
+        alt_vals = [0.0048,0.026,0.022,0.0870,0.125,0.167,0.01,0.054,0.079,0.037,0.075,0.09,0.051,0.235,0.027,0.27,0.17,0.25,0.01,0.0630,0.187,0.16,0.241,0.04]
+        alt_sol_df = pd.DataFrame({'pl' : alt_sol_planets,'val' : alt_vals})
+        for pl in alt_sol_df.pl:
+            df.loc[df['pl_name']==pl,'updated_ecc'] =alt_sol_df[alt_sol_df['pl']==pl].val.values
+        df = df[df.updated_ecc>0] #no e=0 (fixed) planets to be kept.
+
+        #save out, if want to use in future
+        if save_archive == True:
+            today=datetime.today().strftime('%Y-%m-%d')
+            df.to_csv('planets'+today+'.csv',index=False)
+        
+        #assign to more informative name...
+        usable_NASA_exoplanets=df
+
+    else:
+        usable_NASA_exoplanets=pd.read_csv(path_to_archive,sep=",")
+
+    #extra ensuring none with e fixed to zero are used.
     usable_NASA_exoplanets=usable_NASA_exoplanets[usable_NASA_exoplanets.updated_ecc>0]
 
     usable_NASA_exoplanets=usable_NASA_exoplanets[(usable_NASA_exoplanets.pl_orbper>=p_low)&(usable_NASA_exoplanets.pl_orbper<p_upp)]
@@ -619,8 +654,8 @@ def main():
     output = az.summary(trace_beta, round_to=4).values
     #ev = idatas[-1].sample_stats["log_marginal_likelihood"].mean().values.item()
     #ev_std = idatas[-1].sample_stats["log_marginal_likelihood"].std().values.item()
-    ev = idatas[-1].sample_stats['log_marginal_likelihood'].values[-1][-1]
-
+    ev = np.nanmean(idatas[-1].sample_stats['log_marginal_likelihood'].values[-1][-1])
+    #print(ev)
     # extracting evidence from the stats proved weird and changing. Hacky version above will hopefully be improved in future...
 
 
@@ -661,9 +696,9 @@ def main():
         idatas.append(idata)
 
     output = az.summary(trace_mixture, round_to=4).values
-    ev = idatas[-1].sample_stats["log_marginal_likelihood"].mean().values.item()
+    #ev = idatas[-1].sample_stats["log_marginal_likelihood"].mean().values.item()
     #ev_std = idatas[-1].sample_stats["log_marginal_likelihood"].std().values.item()
-    #ev = idatas[-1].sample_stats["log_marginal_likelihood"].values[-1][-1]
+    ev = np.nanmean(idatas[-1].sample_stats["log_marginal_likelihood"].values[-1][-1])
 
 
     with open('eccentriciPy_results.txt', 'a') as the_file:
@@ -696,7 +731,7 @@ def main():
     output = az.summary(trace_gamma, round_to=4).values
     #ev = idatas[-1].sample_stats["log_marginal_likelihood"].mean().values.item()
     #ev_std = idatas[-1].sample_stats["log_marginal_likelihood"].std().values.item()
-    ev = idatas[-1].sample_stats['log_marginal_likelihood'].values[-1][-1]
+    ev = np.nanmean(idatas[-1].sample_stats['log_marginal_likelihood'].values[-1][-1])
 
 
     with open('eccentriciPy_results.txt', 'a') as the_file:
